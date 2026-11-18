@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 
 import numpy as np
+import pandas as pd
 
 from spartanseats import db
 from spartanseats.features import build
@@ -52,3 +53,21 @@ def test_model_beats_overall_baseline(tmp_path):
     res = evaluate(con, df, TERMS[-1], TERMS[:-1])
     assert res["model"]["auc"] > 0.8
     assert res["model"]["brier"] < res["baseline_overall"]["brier"]
+
+
+def test_landmark_pairs_and_fit(tmp_path):
+    from spartanseats import landmark
+
+    con = _make_db(tmp_path / "t.db")
+    df = build(con, TERMS)
+    pairs = landmark.pairs_for_term(con, df[df["term"] == TERMS[0]], TERMS[0])
+    # Only sections still open at A appear, and every pair has A before B.
+    assert (pairs["seats_a"] > 0).all()
+    assert (pairs["gap"] > 0).all()
+    train = pd.concat([landmark.pairs_for_term(con, df[df["term"] == t], t) for t in TERMS[:2]])
+    clf = landmark.fit(train)
+    test = landmark.pairs_for_term(con, df[df["term"] == TERMS[2]], TERMS[2])
+    p = landmark.predict(clf, test)
+    assert ((p >= 0) & (p <= 1)).all()
+    # Longer horizons should get higher predicted fill chances on average.
+    assert p[test["gap"].to_numpy() >= 30].mean() > p[test["gap"].to_numpy() <= 3].mean()
