@@ -1,14 +1,17 @@
 name: collect
 
-# Snapshot open seats on SJSU's public class schedule every 4 hours, for every term
-# whose registration window is open, and commit the result as a small CSV.
-# Runs without a laptop, so collection continues while traveling.
+# Every 4 hours: snapshot open seats on SJSU's public class schedule for every term whose
+# registration window is open, commit them as small CSVs, rebuild predictions, and publish
+# the site to GitHub Pages. Runs without a laptop, so collection continues while traveling.
 # GitHub may delay scheduled runs by several minutes; the timestamp in each file is the real one.
 
 on:
   schedule:
     - cron: "17 */4 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["site/**", "model/**", "spartanseats/**", "requirements-live.txt", ".github/workflows/collect.yml"]
 
 permissions:
   contents: write
@@ -21,6 +24,8 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      site_ready: ${{ steps.predict.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -37,18 +42,6 @@ jobs:
       - name: Snapshot open terms
         run: python -m spartanseats.fetch live --csv
 
-      - name: Build predictions
-        # The site keeps the last good data if this fails, so a model problem never blocks collection.
-        continue-on-error: true
-        run: python -m spartanseats.live predict
-
-      - name: Upload site
-        uses: actions/upload-artifact@v7
-        with:
-          name: site
-          path: site/
-          retention-days: 3
-
       - name: Commit snapshots
         run: |
           git config user.name "spartanseats-bot"
@@ -61,3 +54,29 @@ jobs:
           git commit -m "snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase
           git push
+
+      - name: Build predictions
+        id: predict
+        # A model problem must never stop collection; if this fails, the site keeps its last good version.
+        continue-on-error: true
+        run: python -m spartanseats.live predict
+
+      - name: Upload site
+        if: steps.predict.outcome == 'success'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/
+
+  deploy:
+    needs: snapshot
+    if: needs.snapshot.outputs.site_ready == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
