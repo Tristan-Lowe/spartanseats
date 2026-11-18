@@ -3,6 +3,9 @@
 Predicts when each SJSU class section will fill, using only the public class schedule
 (`www.sjsu.edu/classes/schedules/<term>.php`). Never logs in to MySJSU.
 
+**Live site: https://tristan-lowe.github.io/spartanseats/** (rebuilt every 4 hours).
+An independent student project, not affiliated with San Jose State University.
+
 ## Data: why not just one semester
 
 Feedback on the proposal: one semester of our own snapshots is too little training data.
@@ -34,7 +37,9 @@ and are the test set: train on past terms, predict spring 2027, measure error in
 | `spartanseats/terms.py` | Registration start date per term (time zero) and which terms are open now. |
 | `spartanseats/features.py`, `model.py` | Section features; interval-censored Weibull AFT. |
 | `spartanseats/landmark.py`, `compare.py` | Seats-aware landmark model; head-to-head scoring on a held-out term. |
-| `spartanseats/predict.py` | Fill-date predictions for the current term (CSV). |
+| `spartanseats/predict.py` | Fill-date predictions for the current term from the AFT model (CSV). |
+| `spartanseats/live.py` | `export` the trained landmark model to `model/`; `predict` the site data from `snapshots/` + `model/` (no database). |
+| `site/index.html` | The student-facing page (plain HTML/JS). Data in `site/data/` is built, not committed. |
 
 ## Run
 
@@ -53,6 +58,11 @@ through first day of class + 30 days), snapshots the public schedule page, and c
 
 - `snapshots/<term>/seats/<UTC timestamp>.csv.gz`: class number and open seats (~20 KB)
 - `snapshots/<term>/listing.csv.gz`: the rest of the listing (only a git change when it changes)
+
+After the snapshot, the same job runs `python -m spartanseats.live predict` and publishes `site/`
+to GitHub Pages. If predictions fail, collection still commits and the site keeps its last good version.
+After retraining (`python -m spartanseats.live export <past terms>`), commit `model/`; the push redeploys.
+Package versions in `requirements-live.txt` must match the ones that trained the model.
 
 To use the data locally: `git pull`, then `.venv\Scripts\python -m spartanseats.fetch import`.
 Run it by hand from the Actions tab or `gh workflow run collect.yml`.
