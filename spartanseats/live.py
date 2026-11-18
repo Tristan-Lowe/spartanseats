@@ -52,6 +52,7 @@ def export(train_terms: list[str]) -> dict:
     MODEL_DIR.mkdir(exist_ok=True)
     joblib.dump(clf, MODEL_DIR / "landmark.joblib", compress=3)
     (MODEL_DIR / "history.json").write_text(json.dumps(history_tables(sections)), encoding="utf-8")
+    write_course_history(sections)
     import sklearn
 
     meta = {
@@ -64,6 +65,21 @@ def export(train_terms: list[str]) -> dict:
     }
     (MODEL_DIR / "meta.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     return meta
+
+
+def write_course_history(sections: pd.DataFrame) -> None:
+    """Per course: [sections offered, sections seen full, semesters offered] across the training terms.
+
+    "Seen full" means 0 open seats in at least one Archive copy during registration. Copies are
+    sparse, so this undercounts sections that filled and reopened between copies.
+    """
+    g = sections.groupby("course").agg(n=("class_number", "size"), full=("ever_full", "sum"),
+                                       terms=("term", "nunique"))
+    table = {c: [int(r.n), int(r.full), int(r.terms)] for c, r in g.iterrows()}
+    terms = sorted(sections["term"].unique().tolist())
+    MODEL_DIR.mkdir(exist_ok=True)
+    (MODEL_DIR / "course_history.json").write_text(
+        json.dumps({"terms": terms, "courses": table}, separators=(",", ":")), encoding="utf-8")
 
 
 # ---------- predict (anywhere) ----------
@@ -82,8 +98,11 @@ def _seats(path: Path) -> pd.Series:
     )
 
 
-def current_state(term: str, snapshots: Path = SNAPSHOT_DIR) -> tuple[pd.DataFrame, datetime]:
-    """Listing + seats now + seats about a day earlier, one row per section."""
+def current_state(term: str, snapshots: Path = SNAPSHOT_DIR) -> tuple[pd.DataFrame, datetime, float | None]:
+    """Listing + seats now + seats about a day earlier, one row per section.
+
+    Returns (frame, time of the latest snapshot, hours between it and the earlier one or None).
+    """
     term_dir = snapshots / term
     files = _seats_files(term_dir)
     if not files:
@@ -98,19 +117,41 @@ def current_state(term: str, snapshots: Path = SNAPSHOT_DIR) -> tuple[pd.DataFra
     df = listing.copy()
     df["seats_now"] = df["class_number"].map(_seats(now_p))
     if prev is not None:
-        prev_seats = df["class_number"].map(_seats(prev[1]))
+        df["seats_prev"] = df["class_number"].map(_seats(prev[1]))
         days = (now_t - prev[0]).total_seconds() / 86400
-        df["seats_drop_rate"] = (prev_seats - df["seats_now"]) / days
+        df["seats_drop_rate"] = (df["seats_prev"] - df["seats_now"]) / days
+        span = days * 24
     else:
+        df["seats_prev"] = np.nan
         df["seats_drop_rate"] = np.nan
-    return df, now_t
+        span = None
+    return df, now_t, span
+
+
+def seat_history(term: str, snapshots: Path = SNAPSHOT_DIR) -> dict[str, dict[int, list]]:
+    """Per subject: {class_number: [[date, seats], ...]} with the last snapshot of each day (UTC)."""
+    files = _seats_files(snapshots / term)
+    last_per_day: dict[str, Path] = {}
+    for t, path in files:
+        last_per_day[t.date().isoformat()] = path
+    listing = _read_gz_csv(snapshots / term / "listing.csv.gz")
+    subject = {int(r["class_number"]): r["course"].split(" ")[0] for r in listing}
+    out: dict[str, dict[int, list]] = {}
+    for day, path in sorted(last_per_day.items()):
+        for cn, seats in _seats(path).items():
+            if pd.isna(seats) or cn not in subject:
+                continue
+            out.setdefault(subject[cn], {}).setdefault(int(cn), []).append([day, int(seats)])
+    return out
 
 
 def predict(term: str, snapshots: Path = SNAPSHOT_DIR, model_dir: Path = MODEL_DIR) -> dict:
     clf = joblib.load(model_dir / "landmark.joblib")
     hist = json.loads((model_dir / "history.json").read_text(encoding="utf-8"))
     meta = json.loads((model_dir / "meta.json").read_text(encoding="utf-8"))
-    df, now_t = current_state(term, snapshots)
+    df, now_t, span_hours = current_state(term, snapshots)
+    course_hist_path = model_dir / "course_history.json"
+    course_hist = json.loads(course_hist_path.read_text(encoding="utf-8")) if course_hist_path.exists() else None
 
     opens, confirmed = registration_opens(term)
     t0 = datetime(opens.year, opens.month, opens.day)
@@ -153,6 +194,8 @@ def predict(term: str, snapshots: Path = SNAPSHOT_DIR, model_dir: Path = MODEL_D
             "early": to_date(when(row, 0.25)),
             "median": to_date(when(row, 0.5)),
             "late": to_date(when(row, 0.75)),
+            # Whole-percent P(full within gaps[j]) for the "still open on my date" feature.
+            "c": [round(float(v) * 100) for v in row],
         }
 
     sections = []
@@ -160,12 +203,19 @@ def predict(term: str, snapshots: Path = SNAPSHOT_DIR, model_dir: Path = MODEL_D
         cn = int(r["class_number"])
         seats = None if pd.isna(r["seats_now"]) else int(r["seats_now"])
         status = "full" if seats is not None and seats <= 0 else ("open" if cn in preds else "na")
+        drop = None if pd.isna(r["seats_prev"]) or seats is None else int(r["seats_prev"]) - seats
         sections.append({
             "cn": cn, "course": r["course"], "sec": r["section"], "title": r["title"],
             "type": r["type"], "mode": r["mode"], "days": r["days"], "times": r["times"],
-            "instructor": r["instructor"], "ge": r["satisfies"], "seats": seats,
+            "instructor": r["instructor"], "ge": r["satisfies"], "loc": r["location"],
+            "dates": r["dates"], "seats": seats, "drop": drop,
             "status": status, **preds.get(cn, {}),
         })
+    hist_out = None
+    if course_hist:
+        offered = {s["course"] for s in sections}
+        hist_out = {"terms": course_hist["terms"],
+                    "courses": {c: v for c, v in course_hist["courses"].items() if c in offered}}
     return {
         "term": term,
         "updated": now_t.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -174,6 +224,9 @@ def predict(term: str, snapshots: Path = SNAPSHOT_DIR, model_dir: Path = MODEL_D
         "day_of_registration": round(day_now, 1),
         "days_to_term_start": round(days_to_start, 1),
         "term_start": start.isoformat(),
+        "gaps": [round(float(g), 2) for g in gaps],
+        "trend_span_hours": None if span_hours is None else round(span_hours, 1),
+        "course_history": hist_out,
         "model": {k: meta[k] for k in ("trained_at", "train_terms", "train_pairs")},
         "counts": {s: sum(1 for x in sections if x["status"] == s) for s in ("open", "full", "na")},
         "sections": sections,
@@ -188,6 +241,10 @@ def write_site_data(terms: list[str], out_dir: Path = SITE_DATA) -> list[Path]:
         path = out_dir / f"{term}.json"
         path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
         written.append(path)
+        trend_dir = out_dir / "trend" / term
+        trend_dir.mkdir(parents=True, exist_ok=True)
+        for subject, series in seat_history(term).items():
+            (trend_dir / f"{subject}.json").write_text(json.dumps(series, separators=(",", ":")), encoding="utf-8")
         print(f"{term}: {data['counts']} -> {path}")
     (out_dir / "terms.json").write_text(json.dumps(terms), encoding="utf-8")
     return written
@@ -198,11 +255,20 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     e = sub.add_parser("export", help="train on past terms and write model/")
     e.add_argument("terms", nargs="+", help="past terms, oldest first")
+    h = sub.add_parser("history", help="only rewrite model/course_history.json (no retraining)")
+    h.add_argument("terms", nargs="+", help="past terms, oldest first")
     pr = sub.add_parser("predict", help="write site/data/<term>.json from snapshots/ and model/")
     pr.add_argument("terms", nargs="*", help="default: terms with snapshots in their registration window")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(json.dumps(export(a.terms), indent=1))
+        return
+    if a.cmd == "history":
+        from . import db
+        from .features import build
+
+        write_course_history(build(db.connect(), a.terms))
+        print("wrote", MODEL_DIR / "course_history.json")
         return
     terms = a.terms
     if not terms:

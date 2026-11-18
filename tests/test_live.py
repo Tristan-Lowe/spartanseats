@@ -55,3 +55,18 @@ def test_predict_from_csvs(tmp_path):
     # 2 seats left and dropping fast in a popular course vs 40 untouched seats.
     assert by_cn[1]["p7"] > by_cn[2]["p7"]
     assert np.isclose(out["day_of_registration"], 22.8, atol=0.1)
+
+    # Curve for "still open on my date": one value per gap, never decreasing, ends at p_start.
+    assert len(by_cn[1]["c"]) == len(out["gaps"])
+    assert by_cn[1]["c"] == sorted(by_cn[1]["c"])
+    assert by_cn[1]["c"][-1] == round(by_cn[1]["p_start"] * 100)
+    # Seats lost since the snapshot a day earlier.
+    assert by_cn[1]["drop"] == 8
+    assert by_cn[2]["drop"] == 0
+    assert np.isclose(out["trend_span_hours"], 24.0)
+
+
+def test_seat_history(tmp_path):
+    hist = live.seat_history("spring-2027", _snapshots(tmp_path))
+    assert hist["CS"][1] == [["2026-11-17", 10], ["2026-11-18", 2]]
+    assert hist["PHIL"][2] == [["2026-11-17", 40], ["2026-11-18", 40]]

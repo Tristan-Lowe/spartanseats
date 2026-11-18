@@ -10,43 +10,51 @@
   --bg: #f7f7f5; --surface: #ffffff; --text: #1c1c1a; --muted: #5f5f5a; --line: #e2e2dc;
   --accent: #0b5cad; --accent-weak: #e6f0fa;
   --hot: #b3261e; --hot-weak: #fbe9e7; --warm: #8a5a00; --warm-weak: #fdf3dc; --cool: #2e6b30; --cool-weak: #e8f3e8;
-  --full: #6b6b66; --full-weak: #ececea; --bar: #d9d9d3;
+  --full: #6b6b66; --full-weak: #ececea; --bar: #d9d9d3; --star: #c58a00;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #141413; --surface: #1d1d1b; --text: #ecece8; --muted: #a8a8a1; --line: #33332f;
     --accent: #7db4ee; --accent-weak: #1b2a3a;
     --hot: #f2867d; --hot-weak: #3a1d1b; --warm: #e8b65a; --warm-weak: #352a14; --cool: #8fcf8f; --cool-weak: #1c2e1c;
-    --full: #9a9a93; --full-weak: #2a2a27; --bar: #3a3a36;
+    --full: #9a9a93; --full-weak: #2a2a27; --bar: #3a3a36; --star: #f0c04a;
   }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text);
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
 header h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.01em; }
 header p { margin: 4px 0 0; color: var(--muted); }
 .notice { margin-top: 12px; font-size: 0.875rem; color: var(--muted); }
-.status { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 20px 0; padding: 12px 16px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 20px 0 12px; padding: 12px 16px; font-size: 0.9rem; }
 .status b { font-variant-numeric: tabular-nums; }
-.controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
-.controls label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-input[type=search], select { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line);
+.appt { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 12px 16px; margin-bottom: 16px; font-size: 0.9rem; }
+.appt input { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); }
+.appt .sub { flex-basis: 100%; }
+.tabs { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
+.tabs button { font: inherit; background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 12px; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.controls { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: end; }
+.filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+label.f { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+input[type=search], select { width: 100%; font: inherit; padding: 9px 12px; border: 1px solid var(--line);
   border-radius: 8px; background: var(--surface); color: var(--text); }
-input[type=search]:focus, select:focus, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 .toggles { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0 4px; font-size: 0.9rem; }
 .toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
-h2 { font-size: 1.05rem; margin: 28px 0 8px; }
+h2 { font-size: 1.05rem; margin: 24px 0 8px; }
 .hint { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px; }
-.course { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+.course { margin: 12px 0; overflow: hidden; }
 .course-head { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 .course-head h3 { margin: 0; font-size: 1rem; }
 .course-head .title { color: var(--muted); font-weight: 400; }
-.course-head .meta { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.course-head .meta { color: var(--muted); font-size: 0.85rem; text-align: right; }
+.backup { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 0.88rem; background: var(--accent-weak); }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.78rem; padding: 8px 12px; }
-td { padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.76rem; padding: 8px 10px; }
+td { padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
 td.num { font-variant-numeric: tabular-nums; }
 .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
 .pill.hot { background: var(--hot-weak); color: var(--hot); }
@@ -54,22 +62,48 @@ td.num { font-variant-numeric: tabular-nums; }
 .pill.cool { background: var(--cool-weak); color: var(--cool); }
 .pill.full { background: var(--full-weak); color: var(--full); }
 .meter { display: flex; align-items: center; gap: 8px; }
-.meter .track { flex: 0 0 64px; height: 6px; border-radius: 3px; background: var(--bar); overflow: hidden; }
+.meter .track { flex: 0 0 52px; height: 6px; border-radius: 3px; background: var(--bar); overflow: hidden; }
 .meter .fill { height: 100%; background: currentColor; }
 .sub { color: var(--muted); font-size: 0.8rem; }
-details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-top: 28px; }
+.star { font-size: 1.15rem; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--muted); padding: 2px 4px; border-radius: 6px; }
+.star[aria-pressed="true"] { color: var(--star); }
+.down { color: var(--hot); font-size: 0.78rem; font-weight: 600; }
+.spark { display: inline-block; vertical-align: middle; margin-left: 6px; }
+.spark svg { display: block; color: var(--accent); }
+.btn { font: inherit; font-size: 0.9rem; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.conflict { border-left: 4px solid var(--hot); background: var(--hot-weak); padding: 10px 14px; border-radius: 8px; margin: 8px 0; font-size: 0.9rem; }
+.ok { border-left: 4px solid var(--cool); background: var(--cool-weak); padding: 10px 14px; border-radius: 8px; margin: 8px 0; font-size: 0.9rem; }
+.grid { display: grid; grid-template-columns: 52px repeat(var(--days), 1fr); margin-top: 12px; overflow: hidden; }
+.grid .col { position: relative; border-left: 1px solid var(--line); }
+.grid .dayname { text-align: center; font-size: 0.8rem; font-weight: 600; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.grid .hours { position: relative; }
+.grid .hour { position: absolute; right: 6px; font-size: 0.7rem; color: var(--muted); transform: translateY(-50%); }
+.grid .line { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
+.block { position: absolute; left: 3px; right: 3px; border-radius: 6px; padding: 3px 5px; font-size: 0.72rem; line-height: 1.25;
+  background: var(--accent-weak); border: 1px solid var(--accent); overflow: hidden; }
+.block.clash { background: var(--hot-weak); border-color: var(--hot); }
+details { padding: 12px 16px; margin-top: 28px; }
 summary { cursor: pointer; font-weight: 600; }
-details p, details li { color: var(--text); font-size: 0.92rem; }
+details p, details li { font-size: 0.92rem; }
 .empty { color: var(--muted); padding: 16px 0; }
 footer { margin-top: 32px; color: var(--muted); font-size: 0.82rem; }
 a { color: var(--accent); }
-@media (max-width: 640px) {
-  .controls { grid-template-columns: 1fr; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .controls, .filters { grid-template-columns: 1fr 1fr; }
+  .controls > :first-child { grid-column: 1 / -1; }
   thead { display: none; }
-  tr { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
+  tr { display: grid; grid-template-columns: auto 1fr 1fr; gap: 2px 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
   td { border: 0; padding: 2px 0; }
+  td.starcell { grid-row: span 4; }
   td::before { content: attr(data-label); display: block; color: var(--muted); font-size: 0.72rem; }
+  td.starcell::before { content: none; }
   .course-head { flex-direction: column; gap: 2px; }
+  .course-head .meta { text-align: left; }
+  .grid { font-size: 0.8em; }
 }
 </style>
 </head>
@@ -82,40 +116,76 @@ a { color: var(--accent); }
       It reads the public class schedule only and never logs in to MySJSU. Always check MySJSU before you register.</p>
   </header>
 
-  <div class="status" id="status" aria-live="polite">Loading the latest snapshot…</div>
+  <div class="status card" id="status" aria-live="polite">Loading the latest snapshot…</div>
 
-  <div class="controls">
-    <div>
-      <label for="q">Find a course</label>
-      <input type="search" id="q" placeholder="e.g. CS 146, MATH 32, statistics" autocomplete="off">
-    </div>
-    <div>
-      <label for="subject">Subject</label>
-      <select id="subject"><option value="">All subjects</option></select>
-    </div>
-  </div>
-  <div class="toggles">
-    <label><input type="checkbox" id="hideFull"> Hide full sections</label>
-    <label><input type="checkbox" id="geOnly"> GE courses only</label>
+  <div class="appt card">
+    <label for="appt"><b>Your enrollment appointment</b></label>
+    <input type="date" id="appt">
+    <button class="btn" id="apptClear" type="button" hidden>Clear</button>
+    <span class="sub">Add the date from MySJSU (Enrollment Dates) to see the chance each section is still open when you can register. It stays on this device only.</span>
   </div>
 
-  <h2 id="resultsTitle">Filling soonest</h2>
-  <p class="hint" id="resultsHint">Open sections most likely to fill in the next 7 days. Search for a course to see all of its sections.</p>
-  <div id="results"></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabBrowse" aria-selected="true" aria-controls="browse">Browse</button>
+    <button role="tab" id="tabMine" aria-selected="false" aria-controls="mine">My schedule (<span id="mineCount">0</span>)</button>
+  </div>
 
-  <details>
+  <section id="browse" role="tabpanel" aria-labelledby="tabBrowse">
+    <div class="controls">
+      <div>
+        <label class="f" for="q">Find a course</label>
+        <input type="search" id="q" placeholder="e.g. CS 146, MATH 32, statistics" autocomplete="off">
+      </div>
+      <div>
+        <label class="f" for="subject">Subject</label>
+        <select id="subject"><option value="">All subjects</option></select>
+      </div>
+    </div>
+    <div class="filters">
+      <div><label class="f" for="geArea">GE / requirement</label><select id="geArea"><option value="">Any</option><option value="*GE">Any GE area</option></select></div>
+      <div><label class="f" for="mode">Format</label><select id="mode"><option value="">Any</option><option>In Person</option><option>Hybrid</option><option>Fully Online</option></select></div>
+      <div><label class="f" for="daysF">Days</label><select id="daysF"><option value="">Any</option><option value="MW">Mon/Wed</option><option value="TR">Tue/Thu</option><option value="MWF">Mon/Wed/Fri</option><option value="one">One day a week</option><option value="none">No set meeting time</option></select></div>
+      <div><label class="f" for="tod">Time of day</label><select id="tod"><option value="">Any</option><option value="am">Morning (before noon)</option><option value="pm">Afternoon (noon–5)</option><option value="eve">Evening (after 5)</option></select></div>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="hideFull"> Hide full sections</label>
+    </div>
+
+    <h2 id="resultsTitle">Filling soonest</h2>
+    <p class="hint" id="resultsHint"></p>
+    <div id="results"></div>
+  </section>
+
+  <section id="mine" role="tabpanel" aria-labelledby="tabMine" hidden>
+    <p class="hint">Star sections in Browse to collect them here. Saved on this device only.</p>
+    <div class="actions">
+      <button class="btn primary" id="icsBtn" type="button">Download calendar file (.ics)</button>
+      <button class="btn" id="clearMine" type="button">Clear my schedule</button>
+    </div>
+    <div id="conflicts"></div>
+    <div id="mineList"></div>
+    <h2>Week view</h2>
+    <div id="weekGrid" class="card"></div>
+    <div id="unscheduled"></div>
+  </section>
+
+  <details class="card">
     <summary>How this works, and how accurate it is</summary>
     <p>Every 4 hours, SpartanSeats saves the open-seat count for every section on SJSU's public class
       schedule. A model trained on 11 past semesters (2021–2026) looks at each open section right now
       (seats left, how fast seats have been going, the course, the time slot, and how the course filled
-      in past terms) and estimates the chance it fills within 7 days and before classes start.</p>
+      in past terms) and estimates the chance it fills within a given number of days.</p>
     <ul>
       <li><b>Chance it fills</b> is the main number. When the model was tested on semesters it had never seen,
         it ranked a section that went on to fill above one that did not about 87–89% of the time.</li>
       <li>The percentages were checked the same way. On fall 2026, sections given a 39% chance filled 39% of the time.
         On spring 2026 they were off by up to about 10 points, so read 40% as "somewhere around 30–50%."</li>
+      <li><b>Open on your date</b> uses the same model, read at your appointment date. Past the first day of class it shows the chance at the first day of class.</li>
       <li><b>Estimated fill window</b> is rougher. How many days off these dates are has not been measured yet,
         so treat them as a guide, not a deadline.</li>
+      <li><b>Past semesters</b> counts how many sections of the course were seen full during registration in 2021–2026,
+        from Internet Archive copies of the schedule. The copies are a few weeks apart, so this misses some sections that filled and then reopened.</li>
+      <li><b>RateMyProfessors</b> links open RMP's own search for that instructor at SJSU. SpartanSeats does not copy RMP ratings, since RMP's terms do not allow it.</li>
       <li>Full means 0 open seats on the public schedule. Seats can reopen when students drop, and waitlists are not shown.</li>
       <li>Independent study, supervision, and clinical sections are listed without a prediction.</li>
     </ul>
@@ -123,102 +193,357 @@ a { color: var(--accent); }
 
   <footer>
     Data: SJSU public class schedule and Internet Archive copies of it. <span id="modelInfo"></span>
+    Code: <a href="https://github.com/Tristan-Lowe/spartanseats">github.com/Tristan-Lowe/spartanseats</a>
   </footer>
 </div>
 
 <script>
 (() => {
+  "use strict";
   const $ = (id) => document.getElementById(id);
-  const fmtDate = (iso) => iso ? new Date(iso + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
+  const DAY_ORDER = ["M", "T", "W", "R", "F", "S", "U"];
+  const DAY_NAME = { M: "Mon", T: "Tue", W: "Wed", R: "Thu", F: "Fri", S: "Sat", U: "Sun" };
+  const ICS_DAY = { M: "MO", T: "TU", W: "WE", R: "TH", F: "FR", S: "SA", U: "SU" };
+  const RMP_SCHOOL = 881; // San Jose State University on ratemyprofessors.com
+
+  let data = null, byCn = new Map(), trendCache = new Map();
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode: keep in memory only */ } },
+  };
+  let watch = new Set(store.get("ss-watch", []));
+  let appt = store.get("ss-appt", "");
+
+  // ---------- helpers ----------
+  const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pct = (p) => Math.round(p * 100) + "%";
-  let data = null, bySubject = new Map();
+  const fmtDate = (iso) => iso ? new Date(iso + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
+  const band = (p) => p >= 0.5 ? "hot" : p >= 0.2 ? "warm" : "cool";
+  const bandLabel = (p) => p >= 0.5 ? "Likely" : p >= 0.2 ? "Possible" : "Unlikely";
+  const toMin = (t) => { const m = /(\d\d):(\d\d)(AM|PM)/.exec(t); if (!m) return null; let h = +m[1] % 12; if (m[3] === "PM") h += 12; return h * 60 + +m[2]; };
+  const hhmm = (min) => { const h = Math.floor(min / 60), m = min % 60, ap = h >= 12 ? "pm" : "am"; return `${((h + 11) % 12) + 1}${m ? ":" + String(m).padStart(2, "0") : ""}${ap}`; };
 
-  function band(p) { return p >= 0.5 ? "hot" : p >= 0.2 ? "warm" : "cool"; }
-  function bandLabel(p) { return p >= 0.5 ? "Likely" : p >= 0.2 ? "Possible" : "Unlikely"; }
+  /** Each meeting of a section: {days:[...], start, end, loc}. Multi-meeting sections list days inside `times`. */
+  function meetings(s) {
+    const out = [], locs = (s.loc || "").split(" ");
+    const re = /(?:\b([MTWRFSU]+)\s+)?(\d\d:\d\d[AP]M)-(\d\d:\d\d[AP]M)/g;
+    let m, i = 0;
+    while ((m = re.exec(s.times || ""))) {
+      const days = (m[1] || (s.days || "").split(" ")[0] || "").split("").filter((d) => DAY_ORDER.includes(d));
+      if (days.length) out.push({ days, start: toMin(m[2]), end: toMin(m[3]), loc: locs[i] || locs[0] || "" });
+      i++;
+    }
+    return out;
+  }
+  function dateRange(s) {
+    const m = /(\d\d)\/(\d\d)\/(\d\d)-(\d\d)\/(\d\d)\/(\d\d)/.exec(s.dates || "");
+    if (!m) return null;
+    return [new Date(2000 + +m[3], +m[1] - 1, +m[2]), new Date(2000 + +m[6], +m[4] - 1, +m[5])];
+  }
+  function whenText(s) {
+    const ms = meetings(s);
+    if (!ms.length) return (s.mode || "").includes("Online") ? "Online, no set time" : "TBA";
+    return ms.map((m) => `${m.days.join("")} ${hhmm(m.start)}–${hhmm(m.end)}`).join(", ");
+  }
+  function dayUnion(s) { return [...new Set(meetings(s).flatMap((m) => m.days))].sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b)).join(""); }
 
+  /** P(full by `days` from the snapshot), interpolated from the model's curve. */
+  function pFullWithin(s, days) {
+    const g = data.gaps, c = s.c;
+    if (!c || !g) return null;
+    if (days <= 0) return 0;
+    if (days >= g[g.length - 1]) return c[c.length - 1] / 100;
+    if (days <= g[0]) return (c[0] / 100) * (days / g[0]);
+    for (let i = 1; i < g.length; i++) if (days <= g[i]) {
+      const t = (days - g[i - 1]) / (g[i] - g[i - 1]);
+      return (c[i - 1] + t * (c[i] - c[i - 1])) / 100;
+    }
+    return c[c.length - 1] / 100;
+  }
+  function daysUntilAppt() {
+    if (!appt) return null;
+    // Appointments usually open in the morning; read the chance at 8am Pacific that day (~16:00 UTC).
+    return (new Date(appt + "T16:00:00Z") - new Date(data.updated)) / 86400000;
+  }
+  function rmpLink(name) {
+    const n = (name || "").trim();
+    if (!n || /^(staff|tba)$/i.test(n)) return `<span class="sub">RMP: N/A</span>`;
+    const url = `https://www.ratemyprofessors.com/search/professors/${RMP_SCHOOL}?q=${encodeURIComponent(n)}`;
+    return `<a class="sub" href="${url}" target="_blank" rel="noopener">RateMyProfessors ↗</a>`;
+  }
+
+  // ---------- rendering ----------
   function meter(p) {
     const b = band(p);
     return `<span class="meter" style="color:var(--${b})"><span class="track"><span class="fill" style="width:${Math.max(2, p * 100)}%"></span></span>`
       + `<span class="pill ${b}">${bandLabel(p)} · ${pct(p)}</span></span>`;
   }
-
+  function openOnCell(s) {
+    if (s.status === "full") return `<span class="sub">Full now</span>`;
+    if (s.status !== "open") return "";
+    const d = daysUntilAppt();
+    if (d == null) return `${pct(s.p_start)} <span class="sub">fill before classes</span>`;
+    if (d <= 0) return `<span class="sub">Date has passed</span>`;
+    const pOpen = 1 - pFullWithin(s, d);
+    const b = pOpen >= 0.8 ? "cool" : pOpen >= 0.5 ? "warm" : "hot";
+    const lbl = pOpen >= 0.8 ? "Likely open" : pOpen >= 0.5 ? "Maybe" : "Likely full";
+    return `<span class="pill ${b}">${lbl} · ${pct(pOpen)}</span>`;
+  }
   function windowText(s) {
     if (s.status !== "open") return "";
     if (s.median === data.term_start) return `<span class="sub">Close to the first day of class</span>`;
     if (s.median) {
       const early = fmtDate(s.early), mid = fmtDate(s.median);
       const late = s.late && s.late !== data.term_start ? fmtDate(s.late) : "first day of class";
-      return late && late !== early ? `${early} – ${late}` : `around ${mid}`;
+      return s.late && late !== early ? `${early} – ${late}` : `around ${mid}`;
     }
-    return s.p_start < 0.5 ? `<span class="sub">Probably not before classes start</span>` : "";
+    return `<span class="sub">Probably not before classes start</span>`;
   }
-
+  function seatsCell(s) {
+    const seats = s.seats == null ? "–" : s.seats;
+    const span = data.trend_span_hours;
+    const drop = s.drop > 0 && span ? `<div class="down" title="Change over the last ${Math.round(span)} hours">▼ ${s.drop} in ${span >= 20 ? "24h" : Math.round(span) + "h"}</div>` : "";
+    return `${seats}<span class="spark" data-cn="${s.cn}"></span>${drop}`;
+  }
   function row(s) {
-    const when = [s.days, s.times].filter((x) => x && x !== "TBA").join(" ") || "TBA";
+    const saved = watch.has(s.cn);
     const status = s.status === "full" ? `<span class="pill full">Full</span>`
       : s.status === "na" ? `<span class="sub">No prediction</span>` : meter(s.p7);
-    const seats = s.seats == null ? "–" : s.seats;
-    const before = s.status === "open" ? pct(s.p_start) : "";
     return `<tr>
-      <td data-label="Section"><b>${esc(s.sec)}</b> <span class="sub">${esc(s.type)}</span><br><span class="sub">${esc(s.mode)}</span></td>
-      <td data-label="When">${esc(when)}<br><span class="sub">${esc(s.instructor || "Staff")}</span></td>
-      <td data-label="Open seats" class="num">${seats}</td>
+      <td class="starcell"><button class="star" type="button" data-star="${s.cn}" aria-pressed="${saved}" aria-label="${saved ? "Remove" : "Save"} ${esc(s.course)} section ${esc(s.sec)}">${saved ? "★" : "☆"}</button></td>
+      <td data-label="Section"><b>${esc(s.sec)}</b> <span class="sub">${esc(s.type)} · #${s.cn}</span><br><span class="sub">${esc(s.mode)}</span></td>
+      <td data-label="When">${esc(whenText(s))}<br><span class="sub">${esc(s.loc || "")}</span></td>
+      <td data-label="Instructor">${esc(s.instructor || "Staff")}<br>${rmpLink(s.instructor)}</td>
+      <td data-label="Open seats" class="num">${seatsCell(s)}</td>
       <td data-label="Fills in 7 days">${status}</td>
-      <td data-label="Before classes start" class="num">${before}</td>
+      <td data-label="${appt ? "Open on " + fmtDate(appt) : "Before classes"}">${openOnCell(s)}</td>
       <td data-label="Est. fill window">${windowText(s)}</td>
     </tr>`;
   }
-
-  function courseBlock(course, sections) {
-    const full = sections.filter((s) => s.status === "full").length;
-    const title = sections[0].title || "";
-    return `<section class="course" aria-label="${esc(course)}">
-      <div class="course-head"><h3>${esc(course)} <span class="title">${esc(title)}</span></h3>
-        <span class="meta">${sections.length} section${sections.length === 1 ? "" : "s"} · ${full} full</span></div>
-      <table><thead><tr><th>Section</th><th>When</th><th>Open seats</th><th>Fills in 7 days</th><th>Before classes start</th><th>Est. fill window</th></tr></thead>
-      <tbody>${sections.map(row).join("")}</tbody></table></section>`;
+  function historyLine(course) {
+    const h = data.course_history && data.course_history.courses[course];
+    if (!h) return "New since 2021, or not offered in past semesters we saw";
+    const [n, full, terms] = h;
+    return `Past semesters: ${full} of ${n} sections seen full (${terms} term${terms === 1 ? "" : "s"}, 2021–26)`;
   }
-
-  function esc(t) { return String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
-
-  function render() {
-    const q = $("q").value.trim().toLowerCase();
-    const subj = $("subject").value, hideFull = $("hideFull").checked, geOnly = $("geOnly").checked;
-    let list = data.sections.filter((s) =>
-      (!subj || s.course.split(" ")[0] === subj) && (!hideFull || s.status !== "full") && (!geOnly || (s.ge || "").startsWith("GE")));
-    const out = $("results");
-
-    if (!q && !subj) {
-      const top = list.filter((s) => s.status === "open").sort((a, b) => b.p7 - a.p7).slice(0, 25);
-      $("resultsTitle").textContent = "Filling soonest";
-      $("resultsHint").textContent = "Open sections most likely to fill in the next 7 days. Search for a course to see all of its sections.";
-      const groups = new Map();
-      top.forEach((s) => { if (!groups.has(s.course)) groups.set(s.course, []); groups.get(s.course).push(s); });
-      out.innerHTML = [...groups].map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">Nothing matches.</p>`;
-      return;
-    }
-    if (q) {
-      const qn = q.replace(/\s+/g, " ");
-      list = list.filter((s) => s.course.toLowerCase().includes(qn) || s.course.toLowerCase().replace(" ", "").includes(qn.replace(" ", ""))
-        || (s.title || "").toLowerCase().includes(qn));
-    }
+  function backupLine(sections, all) {
+    // Suggest other sections of the same course and type when some are full or likely to fill.
+    const pressured = sections.filter((s) => s.status === "full" || (s.status === "open" && s.p7 >= 0.5));
+    if (!pressured.length) return "";
+    const types = new Set(pressured.map((s) => s.type));
+    const shown = new Set(pressured.map((s) => s.cn));
+    const alts = all.filter((s) => s.status === "open" && types.has(s.type) && !shown.has(s.cn))
+      .sort((a, b) => a.p_start - b.p_start).slice(0, 3);
+    if (!alts.length) return `<div class="backup">No other open ${[...types].join("/")} sections of this course right now.</div>`;
+    const safest = alts[0].p_start;
+    const lead = safest < 0.5 ? "Backup options" : "Other open sections (also likely to fill before classes)";
+    return `<div class="backup"><b>${lead}:</b> ` + alts.map((s) =>
+      `${esc(s.sec)} (${esc(whenText(s))}, ${s.seats} seats, ${pct(s.p_start)} chance it fills before classes)`).join(" · ") + `</div>`;
+  }
+  function courseBlock(course, sections, opts = {}) {
+    const all = data.sections.filter((s) => s.course === course);
+    const full = all.filter((s) => s.status === "full").length;
+    const title = all[0] ? all[0].title : "";
+    return `<section class="course card" aria-label="${esc(course)}">
+      <div class="course-head"><h3>${esc(course)} <span class="title">${esc(title)}</span></h3>
+        <span class="meta">${all.length} section${all.length === 1 ? "" : "s"} · ${full} full now<br>${esc(historyLine(course))}</span></div>
+      <table><thead><tr><th><span class="sub">Save</span></th><th>Section</th><th>When / where</th><th>Instructor</th><th>Open seats</th><th>Fills in 7 days</th>
+        <th>${appt ? "Open on " + esc(fmtDate(appt)) : "Before classes start"}</th><th>Est. fill window</th></tr></thead>
+      <tbody>${sections.map(row).join("")}</tbody></table>
+      ${opts.noBackup ? "" : backupLine(sections, all)}</section>`;
+  }
+  function groupByCourse(list) {
     const groups = new Map();
     list.forEach((s) => { if (!groups.has(s.course)) groups.set(s.course, []); groups.get(s.course).push(s); });
-    const courses = [...groups].slice(0, 40);
-    $("resultsTitle").textContent = `${groups.size} course${groups.size === 1 ? "" : "s"}`;
-    $("resultsHint").textContent = groups.size > 40 ? "Showing the first 40. Narrow your search to see more." : "";
-    out.innerHTML = courses.map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">No sections match.</p>`;
+    return groups;
   }
+
+  // ---------- trend sparklines (loaded per subject on demand) ----------
+  async function fillSparks(root) {
+    const spans = [...root.querySelectorAll(".spark[data-cn]")];
+    const subjects = new Set(spans.map((el) => byCn.get(+el.dataset.cn)?.course.split(" ")[0]).filter(Boolean));
+    await Promise.all([...subjects].map(async (subj) => {
+      if (trendCache.has(subj)) return;
+      try { trendCache.set(subj, await (await fetch(`data/trend/${data.term}/${encodeURIComponent(subj)}.json`)).json()); }
+      catch { trendCache.set(subj, {}); }
+    }));
+    spans.forEach((el) => {
+      const s = byCn.get(+el.dataset.cn); if (!s) return;
+      const series = (trendCache.get(s.course.split(" ")[0]) || {})[s.cn];
+      if (!series || series.length < 2) return;
+      const vals = series.map((p) => p[1]), max = Math.max(...vals, 1), w = 56, h = 16;
+      const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - 1 - (v / max) * (h - 2)}`).join(" ");
+      el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Open seats per day from ${series[0][0]}: ${vals.join(", ")}"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${pts}"/></svg>`;
+    });
+  }
+
+  // ---------- browse ----------
+  function matchesFilters(s) {
+    const subj = $("subject").value, ge = $("geArea").value, mode = $("mode").value, days = $("daysF").value, tod = $("tod").value;
+    if (subj && s.course.split(" ")[0] !== subj) return false;
+    if ($("hideFull").checked && s.status === "full") return false;
+    if (ge === "*GE" && !(s.ge || "").startsWith("GE")) return false;
+    if (ge && ge !== "*GE" && s.ge !== ge) return false;
+    if (mode && s.mode !== mode) return false;
+    if (days) {
+      const u = dayUnion(s);
+      if (days === "none" ? u !== "" : days === "one" ? u.length !== 1 : u !== days) return false;
+    }
+    if (tod) {
+      const m = meetings(s)[0]; if (!m) return false;
+      if (tod === "am" && !(m.start < 720)) return false;
+      if (tod === "pm" && !(m.start >= 720 && m.start < 1020)) return false;
+      if (tod === "eve" && !(m.start >= 1020)) return false;
+    }
+    return true;
+  }
+  function renderBrowse() {
+    const q = $("q").value.trim().toLowerCase().replace(/\s+/g, " ");
+    const anyFilter = q || ["subject", "geArea", "mode", "daysF", "tod"].some((id) => $(id).value);
+    let list = data.sections.filter(matchesFilters);
+    const out = $("results");
+    if (!anyFilter) {
+      const top = list.filter((s) => s.status === "open").sort((a, b) => b.p7 - a.p7).slice(0, 25);
+      $("resultsTitle").textContent = "Filling soonest";
+      $("resultsHint").textContent = "Open sections most likely to fill in the next 7 days. Search or filter to see everything.";
+      out.innerHTML = [...groupByCourse(top)].map(([c, ss]) => courseBlock(c, ss, { noBackup: true })).join("") || `<p class="empty">Nothing matches.</p>`;
+    } else {
+      if (q) {
+        const qc = q.replace(/ /g, "");
+        list = list.filter((s) => s.course.toLowerCase().includes(q) || s.course.toLowerCase().replace(/ /g, "").includes(qc) || (s.title || "").toLowerCase().includes(q));
+      }
+      const groups = groupByCourse(list), courses = [...groups].slice(0, 40);
+      $("resultsTitle").textContent = `${groups.size} course${groups.size === 1 ? "" : "s"}`;
+      $("resultsHint").textContent = groups.size > 40 ? "Showing the first 40. Narrow your search to see more." : "";
+      out.innerHTML = courses.map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">No sections match.</p>`;
+    }
+    fillSparks(out);
+  }
+
+  // ---------- my schedule ----------
+  function savedSections() { return [...watch].map((cn) => byCn.get(cn)).filter(Boolean); }
+  function findConflicts(list) {
+    const clashes = [];
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+      const a = list[i], b = list[j], ra = dateRange(a), rb = dateRange(b);
+      if (ra && rb && (ra[1] < rb[0] || rb[1] < ra[0])) continue; // different parts of the term
+      const days = new Set();
+      for (const ma of meetings(a)) for (const mb of meetings(b)) {
+        if (ma.start < mb.end && mb.start < ma.end) ma.days.filter((d) => mb.days.includes(d)).forEach((d) => days.add(d));
+      }
+      if (days.size) clashes.push([a, b, DAY_ORDER.filter((d) => days.has(d))]);
+    }
+    return clashes;
+  }
+  function renderMine() {
+    const list = savedSections();
+    $("mineCount").textContent = list.length;
+    const missing = [...watch].filter((cn) => !byCn.has(cn)).length;
+    $("icsBtn").disabled = !list.some((s) => meetings(s).length);
+    $("clearMine").disabled = !watch.size;
+    const clashes = findConflicts(list);
+    const clashCns = new Set(clashes.flatMap(([a, b]) => [a.cn, b.cn]));
+    $("conflicts").innerHTML = !list.length ? "" : clashes.length
+      ? clashes.map(([a, b, ds]) => `<div class="conflict"><b>Time conflict on ${ds.map((d) => DAY_NAME[d]).join(" and ")}:</b> ${esc(a.course)}-${esc(a.sec)} (${esc(whenText(a))}) and ${esc(b.course)}-${esc(b.sec)} (${esc(whenText(b))})</div>`).join("")
+      : `<div class="ok">No time conflicts among your ${list.length} saved section${list.length === 1 ? "" : "s"}.</div>`;
+    $("mineList").innerHTML = (missing ? `<p class="hint">${missing} saved section${missing === 1 ? " is" : "s are"} not in this term's schedule.</p>` : "")
+      + ([...groupByCourse(list)].map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">No saved sections yet. Use ☆ in Browse.</p>`);
+    fillSparks($("mineList"));
+    renderGrid(list, clashCns);
+  }
+  function renderGrid(list, clashCns) {
+    const blocks = list.flatMap((s) => meetings(s).flatMap((m) => m.days.map((d) => ({ s, m, d }))));
+    const days = ["M", "T", "W", "R", "F"].concat(blocks.some((b) => b.d === "S") ? ["S"] : []).concat(blocks.some((b) => b.d === "U") ? ["U"] : []);
+    const lo = Math.min(480, ...blocks.map((b) => Math.floor(b.m.start / 60) * 60));
+    const hi = Math.max(1080, ...blocks.map((b) => Math.ceil(b.m.end / 60) * 60));
+    const pxPerMin = 0.8, height = (hi - lo) * pxPerMin;
+    let html = `<div class="grid" style="--days:${days.length}"><div><div class="dayname">&nbsp;</div><div class="hours" style="height:${height}px">`;
+    for (let t = lo; t <= hi; t += 60) html += `<span class="hour" style="top:${(t - lo) * pxPerMin}px">${hhmm(t)}</span>`;
+    html += `</div></div>`;
+    for (const d of days) {
+      html += `<div class="col"><div class="dayname">${DAY_NAME[d]}</div><div style="position:relative;height:${height}px">`;
+      for (let t = lo; t <= hi; t += 60) html += `<div class="line" style="top:${(t - lo) * pxPerMin}px"></div>`;
+      // Overlapping meetings go side by side: each takes the first free lane.
+      const today = blocks.filter((b) => b.d === d).sort((a, b) => a.m.start - b.m.start);
+      const laneEnds = [];
+      today.forEach((b) => {
+        let lane = laneEnds.findIndex((end) => end <= b.m.start);
+        if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+        laneEnds[lane] = b.m.end; b.lane = lane;
+      });
+      const lanes = Math.max(1, laneEnds.length);
+      today.forEach(({ s, m, lane }) => {
+        const left = `calc(${(lane / lanes) * 100}% + 3px)`, width = `calc(${100 / lanes}% - 6px)`;
+        html += `<div class="block${clashCns.has(s.cn) ? " clash" : ""}" style="left:${left};width:${width};right:auto;top:${(m.start - lo) * pxPerMin}px;height:${Math.max(18, (m.end - m.start) * pxPerMin)}px" title="${esc(s.course)}-${esc(s.sec)} ${hhmm(m.start)}–${hhmm(m.end)} ${esc(m.loc)}"><b>${esc(s.course)}-${esc(s.sec)}</b><br>${hhmm(m.start)}–${hhmm(m.end)} ${esc(m.loc)}</div>`;
+      });
+      html += `</div></div>`;
+    }
+    $("weekGrid").innerHTML = list.length ? html + `</div>` : `<p class="empty" style="padding:16px">Your saved sections will show here.</p>`;
+    const unscheduled = list.filter((s) => !meetings(s).length);
+    $("unscheduled").innerHTML = unscheduled.length ? `<p class="hint">No set meeting time: ${unscheduled.map((s) => `${esc(s.course)}-${esc(s.sec)} (${esc(s.mode)})`).join(", ")}</p>` : "";
+  }
+
+  // ---------- calendar export ----------
+  function icsDate(d) { return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`; }
+  function icsText(t) { return String(t).replace(/[\\;,]/g, (c) => "\\" + c).replace(/\n/g, "\\n"); }
+  function buildIcs(list) {
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//SpartanSeats//Schedule//EN", "CALSCALE:GREGORIAN",
+      "BEGIN:VTIMEZONE", "TZID:America/Los_Angeles",
+      "BEGIN:DAYLIGHT", "TZOFFSETFROM:-0800", "TZOFFSETTO:-0700", "TZNAME:PDT", "DTSTART:19700308T020000", "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU", "END:DAYLIGHT",
+      "BEGIN:STANDARD", "TZOFFSETFROM:-0700", "TZOFFSETTO:-0800", "TZNAME:PST", "DTSTART:19701101T020000", "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU", "END:STANDARD",
+      "END:VTIMEZONE"];
+    list.forEach((s) => {
+      const range = dateRange(s); if (!range) return;
+      meetings(s).forEach((m, i) => {
+        const first = new Date(range[0]);
+        while (!m.days.includes(DAY_ORDER[(first.getDay() + 6) % 7])) first.setDate(first.getDate() + 1);
+        const until = new Date(range[1]); until.setDate(until.getDate() + 1);
+        const t = (min) => `${String(Math.floor(min / 60)).padStart(2, "0")}${String(min % 60).padStart(2, "0")}00`;
+        lines.push("BEGIN:VEVENT", `UID:${s.cn}-${i}-${data.term}@spartanseats`, `DTSTAMP:${stamp}`,
+          `DTSTART;TZID=America/Los_Angeles:${icsDate(first)}T${t(m.start)}`,
+          `DTEND;TZID=America/Los_Angeles:${icsDate(first)}T${t(m.end)}`,
+          `RRULE:FREQ=WEEKLY;BYDAY=${m.days.map((d) => ICS_DAY[d]).join(",")};UNTIL=${icsDate(until)}T075959Z`,
+          `SUMMARY:${icsText(`${s.course}-${s.sec} ${s.type}`)}`,
+          `LOCATION:${icsText(m.loc)}`,
+          `DESCRIPTION:${icsText(`${s.title}\nInstructor: ${s.instructor || "Staff"}\nClass number: ${s.cn}\nFrom SpartanSeats. Check MySJSU for changes.`)}`,
+          "END:VEVENT");
+      });
+    });
+    lines.push("END:VCALENDAR");
+    return lines.join("\r\n") + "\r\n";
+  }
+  function downloadIcs() {
+    const blob = new Blob([buildIcs(savedSections())], { type: "text/calendar" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `sjsu-${data.term}-schedule.ics`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  // ---------- wiring ----------
+  function render() { renderBrowse(); renderMine(); }
+  function setTab(mine) {
+    $("tabBrowse").setAttribute("aria-selected", String(!mine)); $("tabMine").setAttribute("aria-selected", String(mine));
+    $("browse").hidden = mine; $("mine").hidden = !mine;
+  }
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-star]"); if (!btn) return;
+    const cn = +btn.dataset.star;
+    watch.has(cn) ? watch.delete(cn) : watch.add(cn);
+    store.set("ss-watch", [...watch]);
+    render();
+  });
 
   async function load() {
     try {
       const terms = await (await fetch("data/terms.json", { cache: "no-cache" })).json();
-      const term = terms[0];
-      data = await (await fetch(`data/${term}.json`, { cache: "no-cache" })).json();
-    } catch (e) {
+      data = await (await fetch(`data/${terms[0]}.json`, { cache: "no-cache" })).json();
+    } catch {
       $("status").textContent = "Could not load predictions. Try again in a few minutes.";
       return;
     }
+    data.sections.forEach((s) => byCn.set(s.cn, s));
     const [season, year] = data.term.split("-");
     const updated = new Date(data.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
     $("status").innerHTML = `<span><b>${season[0].toUpperCase() + season.slice(1)} ${year}</b></span>`
@@ -226,9 +551,19 @@ a { color: var(--accent); }
       + `<span>Day <b>${Math.floor(data.day_of_registration)}</b> of registration</span>`
       + `<span><b>${data.counts.full.toLocaleString()}</b> full · <b>${data.counts.open.toLocaleString()}</b> open</span>`;
     $("modelInfo").textContent = `Model trained ${new Date(data.model.trained_at).toLocaleDateString()} on ${data.model.train_terms.length} semesters.`;
-    data.sections.forEach((s) => bySubject.set(s.course.split(" ")[0], true));
-    [...bySubject.keys()].sort().forEach((k) => $("subject").insertAdjacentHTML("beforeend", `<option>${esc(k)}</option>`));
-    ["q", "subject", "hideFull", "geOnly"].forEach((id) => $(id).addEventListener("input", render));
+    [...new Set(data.sections.map((s) => s.course.split(" ")[0]))].sort()
+      .forEach((k) => $("subject").insertAdjacentHTML("beforeend", `<option>${esc(k)}</option>`));
+    [...new Set(data.sections.map((s) => s.ge).filter(Boolean))].sort()
+      .forEach((k) => $("geArea").insertAdjacentHTML("beforeend", `<option>${esc(k)}</option>`));
+    $("appt").value = appt; $("apptClear").hidden = !appt;
+    $("appt").min = data.updated.slice(0, 10); $("appt").max = data.term_start;
+    $("appt").addEventListener("change", () => { appt = $("appt").value; store.set("ss-appt", appt); $("apptClear").hidden = !appt; render(); });
+    $("apptClear").addEventListener("click", () => { appt = ""; $("appt").value = ""; store.set("ss-appt", ""); $("apptClear").hidden = true; render(); });
+    ["q", "subject", "geArea", "mode", "daysF", "tod", "hideFull"].forEach((id) => $(id).addEventListener("input", renderBrowse));
+    $("tabBrowse").addEventListener("click", () => setTab(false));
+    $("tabMine").addEventListener("click", () => setTab(true));
+    $("icsBtn").addEventListener("click", downloadIcs);
+    $("clearMine").addEventListener("click", () => { if (confirm("Remove all saved sections?")) { watch.clear(); store.set("ss-watch", []); render(); } });
     render();
   }
   load();
