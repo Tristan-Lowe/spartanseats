@@ -60,3 +60,22 @@ def term_start(term: str) -> date:
     season, year_s = term.split("-")
     year = int(year_s)
     return date(year, 1, 20) if season == "spring" else date(year, 8, 20)
+
+
+# Keep collecting through add/drop, when seats still move.
+COLLECT_AFTER_START = timedelta(days=30)
+
+
+def _next_terms(today: date) -> list[str]:
+    y = today.year
+    return [f"spring-{y}", f"fall-{y}", f"spring-{y + 1}", f"fall-{y + 1}"]
+
+
+def collectable_terms(today: date) -> list[str]:
+    """Terms whose registration window (opens - 14 days through start + 30 days) contains today."""
+    out = []
+    for term in _next_terms(today):
+        opens, _ = registration_opens(term)
+        if opens - timedelta(days=14) <= today <= term_start(term) + COLLECT_AFTER_START:
+            out.append(term)
+    return out
