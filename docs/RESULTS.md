@@ -1,0 +1,43 @@
+# Results (2026-11-18)
+
+Question scored: a section is open at capture A; is it full by capture B?
+Each held-out term is trained only on earlier terms. AUC: higher is better. Brier: lower is better.
+
+## Archive coverage (captures inside the registration window)
+
+| Term | Captures | Days since registration opened |
+|---|---|---|
+| fall-2020 | 0 | (all captures are after the term started) |
+| spring-2021 | 10 | -1, 50-57, 82 |
+| fall-2021 | 3 | 64, 65, 117 |
+| spring-2022 | 3 | -7, 35, 43 |
+| fall-2022 | 2 | 24, 30 |
+| spring-2023 | 0 | |
+| fall-2023 | 3 | 24, 36, 40 |
+| spring-2024 | 2 | 30, 37 |
+| fall-2024 | 6 | 8, 28, 32, 51, 88, 89 |
+| spring-2025 | 5 | 4, 10, 46, 72, 81 |
+| fall-2025 | 7 | 6, 12, 21, 42, 44, 83, 91 |
+| spring-2026 | 5 | -3, 14, 17, 39, 76 |
+| fall-2026 | 3 | 6, 19, 29 |
+
+Rows with about 1,700-2,000 sections are partial pages the Archive saved; missing sections are skipped.
+
+## Held-out terms
+
+| Test term | Train pairs | Landmark AUC / Brier | AFT AUC / Brier | Gap-only AUC / Brier |
+|---|---|---|---|---|
+| spring-2022 | 158,242 | 0.852 / 0.142 | 0.832 / 0.148 | 0.35 / 0.208 |
+| fall-2025 | 227,481 | **0.888 / 0.105** | 0.814 / 0.123 | 0.666 / 0.156 |
+| spring-2026 | 321,111 | **0.865 / 0.126** | 0.787 / 0.148 | 0.610 / 0.182 |
+| fall-2026 | 365,169 | **0.887 / 0.085** | 0.827 / 0.104 | 0.579 / 0.125 |
+
+Short gaps (B within 3 days of A), where the Archive happens to have them:
+
+| Test term | Pairs (filled) | Landmark AUC / Brier | AFT AUC / Brier |
+|---|---|---|---|
+| fall-2025 (days 42 -> 44) | 4,114 (38) | 0.980 / 0.007 | 0.788 / 0.009 |
+| spring-2026 (days 14 -> 17) | 4,280 (486) | 0.910 / 0.097 | 0.853 / 0.106 |
+
+Not yet measured: error in days for predicted fill dates, and short horizons in the first week
+of registration. Both need the 4-hourly live snapshots.
