@@ -31,7 +31,10 @@ and are the test set: train on past terms, predict spring 2027, measure error in
 | `spartanseats/db.py` | SQLite: `snapshot` (one per page capture) and `observation` (one per section per capture). |
 | `spartanseats/fetch.py` | `live` snapshot of sjsu.edu; `backfill` from the Wayback CDX API. Raw HTML kept in `data/raw/`. |
 | `spartanseats/intervals.py` | Per-section fill interval (interval / right / left censored). |
-| `spartanseats/terms.py` | Registration start date per term (time zero). |
+| `spartanseats/terms.py` | Registration start date per term (time zero) and which terms are open now. |
+| `spartanseats/features.py`, `model.py` | Section features; interval-censored Weibull AFT. |
+| `spartanseats/landmark.py`, `compare.py` | Seats-aware landmark model; head-to-head scoring on a held-out term. |
+| `spartanseats/predict.py` | Fill-date predictions for the current term (CSV). |
 
 ## Run
 
@@ -42,8 +45,19 @@ python -m venv .venv; .venv\Scripts\python -m pip install -e ".[dev]"
 .venv\Scripts\python -m pytest
 ```
 
-`collect.ps1` runs one live snapshot and appends to `data/collect.log`; schedule it with
-Windows Task Scheduler every 4 hours during registration.
+## Live collection (GitHub Actions)
+
+`.github/workflows/collect.yml` runs every 4 hours (at :17 UTC; GitHub may delay it a few
+minutes). It picks every term whose registration window is open (registration opens - 14 days
+through first day of class + 30 days), snapshots the public schedule page, and commits:
+
+- `snapshots/<term>/seats/<UTC timestamp>.csv.gz`: class number and open seats (~20 KB)
+- `snapshots/<term>/listing.csv.gz`: the rest of the listing (only a git change when it changes)
+
+To use the data locally: `git pull`, then `.venv\Scripts\python -m spartanseats.fetch import`.
+Run it by hand from the Actions tab or `gh workflow run collect.yml`.
+
+`collect.ps1` is the older laptop version (Windows Task Scheduler, writes straight to SQLite).
 
 ## Etiquette
 
