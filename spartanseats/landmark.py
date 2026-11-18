@@ -22,7 +22,6 @@ import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 from .features import KEEP_TYPES
-from .model import status_at_captures
 
 STATIC = ["level_code", "type_code", "mode_code", "units_f", "tba", "evening", "early", "ge",
           "n_sections", "hist_course_full", "hist_subject_full", "hist_course_seen"]
@@ -44,6 +43,8 @@ def _codes(df: pd.DataFrame) -> pd.DataFrame:
 def pairs_for_term(con: sqlite3.Connection, static: pd.DataFrame, term: str,
                    rng: np.random.Generator | None = None) -> pd.DataFrame:
     """All (A, B) capture pairs for open-at-A sections, with features and label full_at_B."""
+    from .model import status_at_captures  # needs lifelines; kept out of the live/site path
+
     st = status_at_captures(con, term)
     st = st[st["class_number"].isin(static["class_number"])]
     # Collapse near-duplicate captures (same day) to one per section per day.

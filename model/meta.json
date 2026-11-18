@@ -1,0 +1,38 @@
+{
+ "trained_at": "2026-11-18T20:16:52Z",
+ "train_terms": [
+  "spring-2021",
+  "fall-2021",
+  "spring-2022",
+  "fall-2022",
+  "fall-2023",
+  "spring-2024",
+  "fall-2024",
+  "spring-2025",
+  "fall-2025",
+  "spring-2026",
+  "fall-2026"
+ ],
+ "train_pairs": 380403,
+ "train_sections": 57873,
+ "sklearn": "1.9.1",
+ "features": [
+  "level_code",
+  "type_code",
+  "mode_code",
+  "units_f",
+  "tba",
+  "evening",
+  "early",
+  "ge",
+  "n_sections",
+  "hist_course_full",
+  "hist_subject_full",
+  "hist_course_seen",
+  "day_a",
+  "gap",
+  "seats_a",
+  "seats_drop_rate",
+  "share_course_full_a"
+ ]
+}

@@ -1,0 +1,8 @@
+# What GitHub Actions needs to collect snapshots and build predictions.
+# Pinned to the versions that trained model/landmark.joblib; re-export the model when these change.
+requests==2.34.2
+beautifulsoup4==4.15.0
+numpy==2.5.5
+pandas==2.3.3
+scikit-learn==1.9.1
+joblib==1.6.0

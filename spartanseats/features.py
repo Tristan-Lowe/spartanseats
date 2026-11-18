@@ -70,6 +70,12 @@ def term_frame(con: sqlite3.Connection, term: str) -> pd.DataFrame:
     df["upper"] = np.maximum(df["upper"], df["lower"] + EPS)
     df["ever_full"] = np.isfinite(df["upper"])
 
+    return listing_features(df)
+
+
+def listing_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Features derived from the schedule listing alone (shared by training and the live site)."""
+    df = df.copy()
     df["subject"] = df["course"].str.split(" ").str[0]
     df["number"] = df["course"].map(_course_number)
     df["level"] = pd.cut(df["number"], [-1, 99, 199, 1000], labels=["lower", "upper", "grad"]).astype(str)
@@ -87,16 +93,28 @@ def add_history(df: pd.DataFrame, terms_in_order: list[str], prior: float = 5.0)
     """Course and subject fill rates from strictly earlier terms (smoothed toward the overall rate)."""
     out = []
     for i, term in enumerate(terms_in_order):
-        cur = df[df["term"] == term].copy()
+        cur = df[df["term"] == term]
         past = df[df["term"].isin(terms_in_order[:i])]
-        base = past["ever_full"].mean() if len(past) else 0.3
-        for key, col in (("course", "hist_course_full"), ("subject", "hist_subject_full")):
-            g = past.groupby(key)["ever_full"].agg(["sum", "count"])
-            rate = (g["sum"] + prior * base) / (g["count"] + prior)
-            cur[col] = cur[key].map(rate).fillna(base)
-        cur["hist_course_seen"] = cur["course"].isin(set(past["course"]))
-        out.append(cur)
+        out.append(apply_history(cur, history_tables(past, prior)))
     return pd.concat(out, ignore_index=True) if out else df
+
+
+def history_tables(past: pd.DataFrame, prior: float = 5.0) -> dict:
+    """Smoothed fill rates by course and subject from past section-terms (JSON-serializable)."""
+    base = float(past["ever_full"].mean()) if len(past) else 0.3
+    tables: dict = {"base": base}
+    for key in ("course", "subject"):
+        g = past.groupby(key)["ever_full"].agg(["sum", "count"])
+        tables[key] = ((g["sum"] + prior * base) / (g["count"] + prior)).round(4).to_dict()
+    return tables
+
+
+def apply_history(cur: pd.DataFrame, tables: dict) -> pd.DataFrame:
+    cur = cur.copy()
+    cur["hist_course_full"] = cur["course"].map(tables["course"]).fillna(tables["base"])
+    cur["hist_subject_full"] = cur["subject"].map(tables["subject"]).fillna(tables["base"])
+    cur["hist_course_seen"] = cur["course"].isin(set(tables["course"]))
+    return cur
 
 
 def build(con: sqlite3.Connection, terms_in_order: list[str]) -> pd.DataFrame:

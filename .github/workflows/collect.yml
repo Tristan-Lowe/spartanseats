@@ -26,13 +26,28 @@ jobs:
 
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          # Same Python and package versions that trained model/landmark.joblib.
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-live.txt
 
-      - name: Install collector dependencies
-        run: pip install requests beautifulsoup4
+      - name: Install dependencies
+        run: pip install -r requirements-live.txt
 
       - name: Snapshot open terms
         run: python -m spartanseats.fetch live --csv
+
+      - name: Build predictions
+        # The site keeps the last good data if this fails, so a model problem never blocks collection.
+        continue-on-error: true
+        run: python -m spartanseats.live predict
+
+      - name: Upload site
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: site/
+          retention-days: 3
 
       - name: Commit snapshots
         run: |

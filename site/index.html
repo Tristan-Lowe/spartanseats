@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpartanSeats</title>
+<meta name="description" content="Which SJSU class sections are likely to fill, and when. An independent student project using the public class schedule.">
+<style>
+:root {
+  --bg: #f7f7f5; --surface: #ffffff; --text: #1c1c1a; --muted: #5f5f5a; --line: #e2e2dc;
+  --accent: #0b5cad; --accent-weak: #e6f0fa;
+  --hot: #b3261e; --hot-weak: #fbe9e7; --warm: #8a5a00; --warm-weak: #fdf3dc; --cool: #2e6b30; --cool-weak: #e8f3e8;
+  --full: #6b6b66; --full-weak: #ececea; --bar: #d9d9d3;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413; --surface: #1d1d1b; --text: #ecece8; --muted: #a8a8a1; --line: #33332f;
+    --accent: #7db4ee; --accent-weak: #1b2a3a;
+    --hot: #f2867d; --hot-weak: #3a1d1b; --warm: #e8b65a; --warm-weak: #352a14; --cool: #8fcf8f; --cool-weak: #1c2e1c;
+    --full: #9a9a93; --full-weak: #2a2a27; --bar: #3a3a36;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+header h1 { margin: 0; font-size: 1.75rem; letter-spacing: -0.01em; }
+header p { margin: 4px 0 0; color: var(--muted); }
+.notice { margin-top: 12px; font-size: 0.875rem; color: var(--muted); }
+.status { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 20px 0; padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.status b { font-variant-numeric: tabular-nums; }
+.controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+.controls label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+input[type=search], select { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--surface); color: var(--text); }
+input[type=search]:focus, select:focus, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0 4px; font-size: 0.9rem; }
+.toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+h2 { font-size: 1.05rem; margin: 28px 0 8px; }
+.hint { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px; }
+.course { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+.course-head { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.course-head h3 { margin: 0; font-size: 1rem; }
+.course-head .title { color: var(--muted); font-weight: 400; }
+.course-head .meta { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 0.78rem; padding: 8px 12px; }
+td { padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+td.num { font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.pill.hot { background: var(--hot-weak); color: var(--hot); }
+.pill.warm { background: var(--warm-weak); color: var(--warm); }
+.pill.cool { background: var(--cool-weak); color: var(--cool); }
+.pill.full { background: var(--full-weak); color: var(--full); }
+.meter { display: flex; align-items: center; gap: 8px; }
+.meter .track { flex: 0 0 64px; height: 6px; border-radius: 3px; background: var(--bar); overflow: hidden; }
+.meter .fill { height: 100%; background: currentColor; }
+.sub { color: var(--muted); font-size: 0.8rem; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-top: 28px; }
+summary { cursor: pointer; font-weight: 600; }
+details p, details li { color: var(--text); font-size: 0.92rem; }
+.empty { color: var(--muted); padding: 16px 0; }
+footer { margin-top: 32px; color: var(--muted); font-size: 0.82rem; }
+a { color: var(--accent); }
+@media (max-width: 640px) {
+  .controls { grid-template-columns: 1fr; }
+  thead { display: none; }
+  tr { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
+  td { border: 0; padding: 2px 0; }
+  td::before { content: attr(data-label); display: block; color: var(--muted); font-size: 0.72rem; }
+  .course-head { flex-direction: column; gap: 2px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SpartanSeats</h1>
+    <p>Which SJSU class sections are likely to fill, and roughly when.</p>
+    <p class="notice">An independent student project, not affiliated with or endorsed by San José State University.
+      It reads the public class schedule only and never logs in to MySJSU. Always check MySJSU before you register.</p>
+  </header>
+
+  <div class="status" id="status" aria-live="polite">Loading the latest snapshot…</div>
+
+  <div class="controls">
+    <div>
+      <label for="q">Find a course</label>
+      <input type="search" id="q" placeholder="e.g. CS 146, MATH 32, statistics" autocomplete="off">
+    </div>
+    <div>
+      <label for="subject">Subject</label>
+      <select id="subject"><option value="">All subjects</option></select>
+    </div>
+  </div>
+  <div class="toggles">
+    <label><input type="checkbox" id="hideFull"> Hide full sections</label>
+    <label><input type="checkbox" id="geOnly"> GE courses only</label>
+  </div>
+
+  <h2 id="resultsTitle">Filling soonest</h2>
+  <p class="hint" id="resultsHint">Open sections most likely to fill in the next 7 days. Search for a course to see all of its sections.</p>
+  <div id="results"></div>
+
+  <details>
+    <summary>How this works, and how accurate it is</summary>
+    <p>Every 4 hours, SpartanSeats saves the open-seat count for every section on SJSU's public class
+      schedule. A model trained on 11 past semesters (2021–2026) looks at each open section right now
+      (seats left, how fast seats have been going, the course, the time slot, and how the course filled
+      in past terms) and estimates the chance it fills within 7 days and before classes start.</p>
+    <ul>
+      <li><b>Chance it fills</b> is the main number. When the model was tested on semesters it had never seen,
+        it ranked a section that went on to fill above one that did not about 87–89% of the time.</li>
+      <li>The percentages were checked the same way. On fall 2026, sections given a 39% chance filled 39% of the time.
+        On spring 2026 they were off by up to about 10 points, so read 40% as "somewhere around 30–50%."</li>
+      <li><b>Estimated fill window</b> is rougher. How many days off these dates are has not been measured yet,
+        so treat them as a guide, not a deadline.</li>
+      <li>Full means 0 open seats on the public schedule. Seats can reopen when students drop, and waitlists are not shown.</li>
+      <li>Independent study, supervision, and clinical sections are listed without a prediction.</li>
+    </ul>
+  </details>
+
+  <footer>
+    Data: SJSU public class schedule and Internet Archive copies of it. <span id="modelInfo"></span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const fmtDate = (iso) => iso ? new Date(iso + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
+  const pct = (p) => Math.round(p * 100) + "%";
+  let data = null, bySubject = new Map();
+
+  function band(p) { return p >= 0.5 ? "hot" : p >= 0.2 ? "warm" : "cool"; }
+  function bandLabel(p) { return p >= 0.5 ? "Likely" : p >= 0.2 ? "Possible" : "Unlikely"; }
+
+  function meter(p) {
+    const b = band(p);
+    return `<span class="meter" style="color:var(--${b})"><span class="track"><span class="fill" style="width:${Math.max(2, p * 100)}%"></span></span>`
+      + `<span class="pill ${b}">${bandLabel(p)} · ${pct(p)}</span></span>`;
+  }
+
+  function windowText(s) {
+    if (s.status !== "open") return "";
+    if (s.median === data.term_start) return `<span class="sub">Close to the first day of class</span>`;
+    if (s.median) {
+      const early = fmtDate(s.early), mid = fmtDate(s.median);
+      const late = s.late && s.late !== data.term_start ? fmtDate(s.late) : "first day of class";
+      return late && late !== early ? `${early} – ${late}` : `around ${mid}`;
+    }
+    return s.p_start < 0.5 ? `<span class="sub">Probably not before classes start</span>` : "";
+  }
+
+  function row(s) {
+    const when = [s.days, s.times].filter((x) => x && x !== "TBA").join(" ") || "TBA";
+    const status = s.status === "full" ? `<span class="pill full">Full</span>`
+      : s.status === "na" ? `<span class="sub">No prediction</span>` : meter(s.p7);
+    const seats = s.seats == null ? "–" : s.seats;
+    const before = s.status === "open" ? pct(s.p_start) : "";
+    return `<tr>
+      <td data-label="Section"><b>${esc(s.sec)}</b> <span class="sub">${esc(s.type)}</span><br><span class="sub">${esc(s.mode)}</span></td>
+      <td data-label="When">${esc(when)}<br><span class="sub">${esc(s.instructor || "Staff")}</span></td>
+      <td data-label="Open seats" class="num">${seats}</td>
+      <td data-label="Fills in 7 days">${status}</td>
+      <td data-label="Before classes start" class="num">${before}</td>
+      <td data-label="Est. fill window">${windowText(s)}</td>
+    </tr>`;
+  }
+
+  function courseBlock(course, sections) {
+    const full = sections.filter((s) => s.status === "full").length;
+    const title = sections[0].title || "";
+    return `<section class="course" aria-label="${esc(course)}">
+      <div class="course-head"><h3>${esc(course)} <span class="title">${esc(title)}</span></h3>
+        <span class="meta">${sections.length} section${sections.length === 1 ? "" : "s"} · ${full} full</span></div>
+      <table><thead><tr><th>Section</th><th>When</th><th>Open seats</th><th>Fills in 7 days</th><th>Before classes start</th><th>Est. fill window</th></tr></thead>
+      <tbody>${sections.map(row).join("")}</tbody></table></section>`;
+  }
+
+  function esc(t) { return String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function render() {
+    const q = $("q").value.trim().toLowerCase();
+    const subj = $("subject").value, hideFull = $("hideFull").checked, geOnly = $("geOnly").checked;
+    let list = data.sections.filter((s) =>
+      (!subj || s.course.split(" ")[0] === subj) && (!hideFull || s.status !== "full") && (!geOnly || (s.ge || "").startsWith("GE")));
+    const out = $("results");
+
+    if (!q && !subj) {
+      const top = list.filter((s) => s.status === "open").sort((a, b) => b.p7 - a.p7).slice(0, 25);
+      $("resultsTitle").textContent = "Filling soonest";
+      $("resultsHint").textContent = "Open sections most likely to fill in the next 7 days. Search for a course to see all of its sections.";
+      const groups = new Map();
+      top.forEach((s) => { if (!groups.has(s.course)) groups.set(s.course, []); groups.get(s.course).push(s); });
+      out.innerHTML = [...groups].map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">Nothing matches.</p>`;
+      return;
+    }
+    if (q) {
+      const qn = q.replace(/\s+/g, " ");
+      list = list.filter((s) => s.course.toLowerCase().includes(qn) || s.course.toLowerCase().replace(" ", "").includes(qn.replace(" ", ""))
+        || (s.title || "").toLowerCase().includes(qn));
+    }
+    const groups = new Map();
+    list.forEach((s) => { if (!groups.has(s.course)) groups.set(s.course, []); groups.get(s.course).push(s); });
+    const courses = [...groups].slice(0, 40);
+    $("resultsTitle").textContent = `${groups.size} course${groups.size === 1 ? "" : "s"}`;
+    $("resultsHint").textContent = groups.size > 40 ? "Showing the first 40. Narrow your search to see more." : "";
+    out.innerHTML = courses.map(([c, ss]) => courseBlock(c, ss)).join("") || `<p class="empty">No sections match.</p>`;
+  }
+
+  async function load() {
+    try {
+      const terms = await (await fetch("data/terms.json", { cache: "no-cache" })).json();
+      const term = terms[0];
+      data = await (await fetch(`data/${term}.json`, { cache: "no-cache" })).json();
+    } catch (e) {
+      $("status").textContent = "Could not load predictions. Try again in a few minutes.";
+      return;
+    }
+    const [season, year] = data.term.split("-");
+    const updated = new Date(data.updated).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    $("status").innerHTML = `<span><b>${season[0].toUpperCase() + season.slice(1)} ${year}</b></span>`
+      + `<span>Updated <b>${updated}</b></span>`
+      + `<span>Day <b>${Math.floor(data.day_of_registration)}</b> of registration</span>`
+      + `<span><b>${data.counts.full.toLocaleString()}</b> full · <b>${data.counts.open.toLocaleString()}</b> open</span>`;
+    $("modelInfo").textContent = `Model trained ${new Date(data.model.trained_at).toLocaleDateString()} on ${data.model.train_terms.length} semesters.`;
+    data.sections.forEach((s) => bySubject.set(s.course.split(" ")[0], true));
+    [...bySubject.keys()].sort().forEach((k) => $("subject").insertAdjacentHTML("beforeend", `<option>${esc(k)}</option>`));
+    ["q", "subject", "hideFull", "geOnly"].forEach((id) => $(id).addEventListener("input", render));
+    render();
+  }
+  load();
+})();
+</script>
+</body>
+</html>
