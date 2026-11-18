@@ -15,9 +15,13 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime, timedelta
 
-from .terms import REGISTRATION_OPENS
+from .terms import registration_opens, term_start
+
+# Captures outside [registration opens - 14 days, first day of class] are dropped:
+# later captures of an archived page only show the frozen end-of-term state.
+WINDOW_BEFORE = timedelta(days=14)
 
 
 @dataclass(frozen=True)
@@ -43,16 +47,28 @@ def _ts(s: str) -> datetime:
     return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
 
 
+def registration_window(term: str) -> tuple[str, str]:
+    """[start, end] of the term's registration window as UTC ISO strings, comparable to captured_at."""
+    opens, _ = registration_opens(term)
+    start = datetime(opens.year, opens.month, opens.day) - WINDOW_BEFORE
+    ts = term_start(term)
+    end = datetime(ts.year, ts.month, ts.day)
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+    return start.strftime(fmt), end.strftime(fmt)
+
+
 def fill_records(con: sqlite3.Connection, term: str) -> list[FillRecord]:
-    """One record per section in the term, using every non-empty snapshot."""
+    """One record per section in the term, from non-empty snapshots inside the registration window."""
+    start, end = registration_window(term)
     cur = con.execute(
         """
         SELECT o.class_number, o.course, o.section, s.captured_at, o.open_seats
         FROM observation o JOIN snapshot s ON s.id = o.snapshot_id
         WHERE s.term = ? AND s.n_sections > 0 AND o.open_seats IS NOT NULL
+          AND s.captured_at BETWEEN ? AND ?
         ORDER BY o.class_number, s.captured_at
         """,
-        (term,),
+        (term, start, end),
     )
     by_class: dict[int, list[tuple[str, str, datetime, int]]] = {}
     for class_number, course, section, captured_at, seats in cur:
@@ -73,8 +89,8 @@ def fill_records(con: sqlite3.Connection, term: str) -> list[FillRecord]:
 
 
 def days_since_open(term: str, t: datetime | None) -> float | None:
-    """Days from the term's registration start to t, or None if either is unknown."""
-    opens: date | None = REGISTRATION_OPENS.get(term)
-    if t is None or opens is None:
+    """Days from the term's registration start to t, or None if t is unknown."""
+    if t is None:
         return None
+    opens, _ = registration_opens(term)
     return (t - datetime(opens.year, opens.month, opens.day)).total_seconds() / 86400

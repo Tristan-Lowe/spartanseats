@@ -91,15 +91,25 @@ def wayback_captures(url: str) -> list[str]:
     return [line.strip() for line in r.text.splitlines() if line.strip()]
 
 
-def backfill(term: str) -> None:
-    """Pull every distinct Wayback capture of a term's schedule page (live and archive URLs)."""
+def backfill(term: str, all_captures: bool = False) -> None:
+    """Pull distinct Wayback captures of a term's schedule page (live and archive URLs).
+
+    By default only captures inside the term's registration window are fetched; later
+    captures of the archived page just repeat the frozen end-of-term state.
+    """
+    from .intervals import registration_window
+
+    lo, hi = (s.replace("-", "").replace(":", "").replace("T", "").rstrip("Z") for s in registration_window(term))
     con = db.connect()
     stamps: list[tuple[str, str]] = []
     for template in (LIVE_URL, ARCHIVE_URL):
         page = template.format(term=term)
         stamps += [(ts, page) for ts in wayback_captures(page.removeprefix("https://www."))]
         time.sleep(POLITE_DELAY_S)
-    print(f"{term}: {len(stamps)} distinct captures")
+    total = len(stamps)
+    if not all_captures:
+        stamps = [(ts, page) for ts, page in stamps if lo <= ts <= hi]
+    print(f"{term}: {total} distinct captures, {len(stamps)} in the registration window")
     for ts, page in sorted(stamps):
         captured_at = datetime.strptime(ts, "%Y%m%d%H%M%S").strftime("%Y-%m-%dT%H:%M:%SZ")
         if db.have_snapshot(con, term, captured_at, "wayback"):
@@ -126,9 +136,13 @@ def main(argv: list[str] | None = None) -> None:
     live.add_argument("terms", nargs="+", help="e.g. spring-2027")
     back = sub.add_parser("backfill", help="load past captures from the Wayback Machine")
     back.add_argument("terms", nargs="+", help="e.g. fall-2024 spring-2025")
+    back.add_argument("--all", action="store_true", help="also fetch captures outside the registration window")
     args = p.parse_args(argv)
     for term in args.terms:
-        (collect_live if args.cmd == "live" else backfill)(term)
+        if args.cmd == "live":
+            collect_live(term)
+        else:
+            backfill(term, all_captures=args.all)
 
 
 if __name__ == "__main__":

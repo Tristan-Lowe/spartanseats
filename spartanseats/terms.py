@@ -1,27 +1,62 @@
 """Registration start dates (first day of the continuing-student registration period).
 
-Time zero for every section in a term. Source: SJSU registrar calendar pages
-(www.sjsu.edu/registrar/calendar/<term>.php). Terms set to None still need a date
-from an archived calendar page; they can't be aligned until then.
+Time zero for every section in a term.
+
+Confirmed dates come from SJSU registrar calendars (checked 2026-11-18):
+  fall-2024   Tue Apr 23 2024   registrar/docs/Fall 2024.pdf
+  spring-2025 Tue Oct 29 2024   registrar/docs/Spring 2025.pdf
+  fall-2026   Tue Apr 21 2026   registrar/calendar/fall-2026.php
+  spring-2027 Tue Oct 27 2026   registrar/calendar/spring-2027.php
+
+All four fit one rule: spring opens the last Tuesday of October, fall opens the
+Tuesday nearest April 22. Other terms use that rule and are marked estimated
+until an archived calendar confirms them.
 """
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
-REGISTRATION_OPENS: dict[str, date | None] = {
-    "fall-2020": None,
-    "spring-2021": None,
-    "fall-2021": None,
-    "spring-2022": None,
-    "fall-2022": None,
-    "spring-2023": None,
-    "fall-2023": None,
-    "spring-2024": None,
-    "fall-2024": None,
-    "spring-2025": None,
-    "fall-2025": None,
-    "spring-2026": None,
-    "fall-2026": date(2026, 4, 21),  # registrar calendar, checked 2026-11-18
-    "spring-2027": date(2026, 10, 27),  # registrar calendar, checked 2026-11-18
+CONFIRMED: dict[str, date] = {
+    "fall-2024": date(2024, 4, 23),
+    "spring-2025": date(2024, 10, 29),
+    "fall-2026": date(2026, 4, 21),
+    "spring-2027": date(2026, 10, 27),
 }
+
+TUESDAY = 1  # date.weekday()
+
+
+def _last_tuesday_of_october(year: int) -> date:
+    d = date(year, 10, 31)
+    return d - timedelta(days=(d.weekday() - TUESDAY) % 7)
+
+
+def _tuesday_nearest_april_22(year: int) -> date:
+    d = date(year, 4, 22)
+    back = (d.weekday() - TUESDAY) % 7
+    return d - timedelta(days=back) if back <= 3 else d + timedelta(days=7 - back)
+
+
+def estimated_open(term: str) -> date:
+    season, year_s = term.split("-")
+    year = int(year_s)
+    if season == "spring":
+        return _last_tuesday_of_october(year - 1)
+    if season == "fall":
+        return _tuesday_nearest_april_22(year)
+    raise ValueError(f"no registration rule for {term}")
+
+
+def registration_opens(term: str) -> tuple[date, bool]:
+    """(date, confirmed) for the term's registration start."""
+    if term in CONFIRMED:
+        return CONFIRMED[term], True
+    return estimated_open(term), False
+
+
+def term_start(term: str) -> date:
+    """Approximate first day of instruction; captures after this are add/drop noise, not registration."""
+    season, year_s = term.split("-")
+    year = int(year_s)
+    return date(year, 1, 20) if season == "spring" else date(year, 8, 20)

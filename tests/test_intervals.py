@@ -43,4 +43,22 @@ def test_placeholder_snapshots_are_ignored(tmp_path):
 
 def test_days_since_open():
     assert days_since_open("fall-2026", datetime(2026, 4, 22, 12)) == 1.5
-    assert days_since_open("fall-2020", datetime(2020, 4, 22)) is None
+    assert days_since_open("fall-2026", None) is None
+    # Estimated term: fall-2025 opens Tue Apr 22 2025 by rule.
+    assert days_since_open("fall-2025", datetime(2025, 4, 22)) == 0
+
+
+def test_registration_rule_matches_confirmed_dates():
+    from spartanseats.terms import CONFIRMED, estimated_open
+
+    for term, d in CONFIRMED.items():
+        assert estimated_open(term) == d
+
+
+def test_captures_after_term_start_are_ignored(tmp_path):
+    con = db.connect(tmp_path / "t.db")
+    _snap(con, "2026-04-25T00:00:00Z", [_row(1, 5)])
+    _snap(con, "2027-03-01T00:00:00Z", [_row(1, 0)])  # archived page, months after class started
+    (rec,) = fill_records(con, "fall-2026")
+    assert rec.kind == "right"
+    assert rec.n_obs == 1
