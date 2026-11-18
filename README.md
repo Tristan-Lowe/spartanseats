@@ -58,6 +58,7 @@ To use the data locally: `git pull`, then `.venv\Scripts\python -m spartanseats.
 Run it by hand from the Actions tab or `gh workflow run collect.yml`.
 
 `collect.ps1` is the older laptop version (Windows Task Scheduler, writes straight to SQLite).
+Its task, "SpartanSeats live snapshot", is disabled; GitHub Actions does the collecting.
 
 ## Etiquette
 
